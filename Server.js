@@ -49,7 +49,7 @@ app.post("/register", async function (req, res) {
 app.post("/login", async function (req, res) {
   try {
     let connection = await MongoClient.connect(URL);
-    let db = connection.db(DB);
+     let db = connection.db(DB);
 
     let user = await db.collection("users").findOne({ email: req.body.email });
 
@@ -89,15 +89,26 @@ app.get("/user/:id", async function (req, res) {
   }
 });
 
-app.post("/deposit/:id", async function (req, res) {
+app.post("/deposit/:accid", async function (req, res) {
   try {
+    console.log(req.body)
     let connection = await MongoClient.connect(URL);
     let db = connection.db(DB);
-
-    await db.collection("users").insertOne(req.body);
+    const {deposit,email}=req.body;
+    console.log({"email":email})
+    let user = await db.collection("users").findOne({ email: `${req.body.email}` });
+    if(!user){
+      res.send(403).json({error:"No userwith the id found"})
+    }
+    if(user.balance){
+      await db.collection("users").findOneAndUpdate({ email:`${email}` },{ $inc: { "balance" : Number(deposit) } })}
+    else{
+      await db.collection("users").findOneAndUpdate({ email:`${email}`},{ $set: { "balance" : Number(user?.balance)+Number(deposit) } })
+    }
     await connection.close();
     res.json({
       message: "Deposited",
+      user
     });
   } catch (error) {
     console.log(error);
