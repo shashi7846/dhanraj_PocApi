@@ -13,7 +13,7 @@ app.use(bodyParser.json());
 app.use(cors());
 
 const DB = "banking";
-
+const balances = new Map();
 // Connect to MongoDB and start the server
 app.post("/register", async function (req, res) {
   try {
@@ -88,6 +88,44 @@ app.get("/user/:id", async function (req, res) {
     console.log(error);
   }
 });
+
+//new chatgpt's suggestion
+app.post("/api/balance/:userId", (req, res) => {
+  const userId = req.params.userId;
+  console.log(userId);
+  const balance = req.body.balance;
+  if (balances.has(userId)) {
+    return res.status(400).json({ message: "User balance already exists" });
+  }
+  if (typeof balance !== "number") {
+    return res.status(400).json({ message: "Invalid balance value" });
+  }
+  balances.set(userId, balance);
+  return res.json({ message: "Balance created" });
+});
+
+//GET balance for a specific user
+app.get("/api/balance/:userId", (req, res) => {
+  const userId = req.params.userId;
+  if (!balances.has(userId)) {
+    return res.status(404).json({ message: "User not found" });
+  }
+  const balance = balances.get(userId);
+  return res.json({ balance });
+});
+
+// PUT balance for a specific user
+app.put("/api/balance/:userId", (req, res) => {
+  const userId = req.params.userId;
+  const newBalance = req.body.balance;
+  if (typeof newBalance !== "number") {
+    return res.status(400).json({ message: "Invalid balance value" });
+  }
+  balances.set(userId, newBalance);
+  return res.json({ message: "Balance updated" });
+});
+
+///
 
 app.post("/deposit/:id", async function (req, res) {
   try {
