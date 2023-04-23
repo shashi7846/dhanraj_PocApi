@@ -91,7 +91,7 @@ app.get("/user/:id", async function (req, res) {
 
 app.post("/deposit/:accid", async function (req, res) {
   try {
-    console.log(req.body);
+    console.log(req);
     let connection = await MongoClient.connect(URL);
     let db = connection.db(DB);
     const { deposit, email } = req.body;
@@ -127,6 +127,24 @@ app.post("/deposit/:accid", async function (req, res) {
   }
 });
 
+app.get("/deposit/:email", async function (req, res) {
+  try {
+    console.log(req.body);
+    let connection = await MongoClient.connect(URL);
+    let db = connection.db(DB);
+    const { deposit, email } = req.body;
+    console.log({ email: email });
+    let user = await db.collection("users").findOne({ email });
+
+    await connection.close();
+    return res.json({
+      message: "Deposited",
+      user,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+});
 // app.post("/withdraw/:accid", async function (req, res) {
 //   try {
 //     console.log(req.body);
@@ -169,12 +187,10 @@ app.post("/withdraw/:accid", async function (req, res) {
       .findOne({ email: `${req.body.email}` });
     if (!user) {
       return res.status(403).json({ error: "No user with the id found" });
-      
     }
-    console.log(user)
-    if(user.balance<withdraw){
-      return res.status(400).json({error:"In sufficient Balance",user})
-      
+    console.log(user);
+    if (user.balance < withdraw) {
+      return res.status(400).json({ error: "In sufficient Balance", user });
     }
     if (user.balance) {
       await db
@@ -184,20 +200,18 @@ app.post("/withdraw/:accid", async function (req, res) {
           { $inc: { balance: -withdraw } }
         );
     }
-    let updated=await db
-    .collection("users")
-    .findOne({ email: `${req.body.email}` });
+    let updated = await db
+      .collection("users")
+      .findOne({ email: `${req.body.email}` });
     await connection.close();
-   
+
     return res.json({
       message: "Withdrawn",
       updated,
-
-
     });
   } catch (error) {
     console.log(error);
-    return res.json({error})
+    return res.json({ error });
   }
 });
 
