@@ -100,7 +100,7 @@ app.post("/deposit/:accid", async function (req, res) {
       .collection("users")
       .findOne({ email: `${req.body.email}` });
     if (!user) {
-      res.send(403).json({ error: "No userwith the id found" });
+      return res.send(403).json({ error: "No userwith the id found" });
     }
     if (user.balance) {
       await db
@@ -118,7 +118,7 @@ app.post("/deposit/:accid", async function (req, res) {
         );
     }
     await connection.close();
-    res.json({
+    return res.json({
       message: "Deposited",
       user,
     });
@@ -168,8 +168,13 @@ app.post("/withdraw/:accid", async function (req, res) {
       .collection("users")
       .findOne({ email: `${req.body.email}` });
     if (!user) {
-      res.status(403).json({ error: "No user with the id found" });
-      return;
+      return res.status(403).json({ error: "No user with the id found" });
+      
+    }
+    console.log(user)
+    if(user.balance<withdraw){
+      return res.status(400).json({error:"In sufficient Balance",user})
+      
     }
     if (user.balance) {
       await db
@@ -179,14 +184,20 @@ app.post("/withdraw/:accid", async function (req, res) {
           { $inc: { balance: -withdraw } }
         );
     }
-    user = await db.collection("users").findOne({ email: `${req.body.email}` });
+    let updated=await db
+    .collection("users")
+    .findOne({ email: `${req.body.email}` });
     await connection.close();
-    res.json({
+   
+    return res.json({
       message: "Withdrawn",
-      user,
+      updated,
+
+
     });
   } catch (error) {
     console.log(error);
+    return res.json({error})
   }
 });
 
