@@ -127,12 +127,12 @@ app.post("/deposit/:accid", async function (req, res) {
   }
 });
 
-app.get("/deposit/:email", async function (req, res) {
+app.get("/:email", async function (req, res) {
   try {
-    console.log(req.body);
+    console.log(req.params);
     let connection = await MongoClient.connect(URL);
     let db = connection.db(DB);
-    const { deposit, email } = req.body;
+    const { email } = req.params;
     console.log({ email: email });
     let user = await db.collection("users").findOne({ email });
 
@@ -145,36 +145,7 @@ app.get("/deposit/:email", async function (req, res) {
     console.log(error);
   }
 });
-// app.post("/withdraw/:accid", async function (req, res) {
-//   try {
-//     console.log(req.body);
-//     let connection = await MongoClient.connect(URL);
-//     let db = connection.db(DB);
-//     const { withdraw, email } = req.body;
-//     console.log({ email: email });
-//     let user = await db
-//       .collection("users")
-//       .findOne({ email: `${req.body.email}` });
-//     if (!user) {
-//       res.send(403).json({ error: "No userwith the id found" });
-//     }
-//     if (user.balance) {
-//       await db
-//         .collection("users")
-//         .findOneAndUpdate(
-//           { email: `${email}` },
-//           { $inc: { balance: -withdraw } }
-//         );
-//     }
-//     await connection.close();
-//     res.json({
-//       message: "Deposited",
-//       user,
-//     });
-//   } catch (error) {
-//     console.log(error);
-//   }
-// });
+
 app.post("/withdraw/:accid", async function (req, res) {
   try {
     console.log(req.body);
